@@ -253,7 +253,7 @@ echo "Database Security Group created: $DB_SG_ID"
 aws ec2 authorize-security-group-ingress \
   --group-id $DB_SG_ID \
   --protocol tcp \
-  --port 3306 
+  --port 3306 \
   --source-group $WP_SG_ID
 
 # Redis Security Group
