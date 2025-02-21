@@ -17,13 +17,24 @@ aws ec2 delete-security-group --group-id $DB_SG_ID || echo "Error deleting DB SG
 aws ec2 delete-security-group --group-id $WP_SG_ID || echo "Error deleting WP SG"
 aws ec2 delete-security-group --group-id $ALB_SG_ID || echo "Error deleting ALB SG"
 
-# Delete NAT Gateway
-echo "Deleting NAT Gateway..."
-aws ec2 delete-nat-gateway --nat-gateway-id $NAT_GATEWAY_ID || echo "Error deleting NAT Gateway"
+# Check NAT Gateway state
+echo "Checking NAT Gateway state..."
+NAT_STATE=$(aws ec2 describe-nat-gateways --nat-gateway-ids $NAT_GATEWAY_ID --query 'NatGateways[0].State' --output text)
 
-# Wait for NAT Gateway to be deleted
-echo "Waiting for NAT Gateway to be deleted..."
-aws ec2 wait nat-gateway-deleted --nat-gateway-ids $NAT_GATEWAY_ID || echo "NAT Gateway deletion failed or timed out"
+if [[ "$NAT_STATE" == "deleted" ]]; then
+  echo "NAT Gateway is already deleted."
+elif [[ "$NAT_STATE" == "deleting" ]]; then
+  echo "NAT Gateway is already in the process of deletion. Waiting for it to be deleted..."
+  aws ec2 wait nat-gateway-deleted --nat-gateway-ids $NAT_GATEWAY_ID || echo "NAT Gateway deletion failed or timed out"
+else
+  echo "Deleting NAT Gateway..."
+  aws ec2 delete-nat-gateway --nat-gateway-id $NAT_GATEWAY_ID || echo "Error deleting NAT Gateway"
+
+  # Wait for NAT Gateway to be deleted
+  echo "Waiting for NAT Gateway to be deleted..."
+  aws ec2 wait nat-gateway-deleted --nat-gateway-ids $NAT_GATEWAY_ID || echo "NAT Gateway deletion failed or timed out"
+fi
+
 
 # Release Elastic IP
 echo "Releasing Elastic IP..."
