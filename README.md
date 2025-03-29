@@ -1,7 +1,8 @@
 # AWS Infrastructure as Code (IaC)
 
-[![Terraform](https://img.shields.io/badge/Terraform-1.6+-623CE4?style=flat&logo=terraform&logoColor=white)](https://www.terraform.io/docs)
+[![Terraform](https://img.shields.io/badge/Terraform-1.7+-623CE4?style=flat&logo=terraform&logoColor=white)](https://www.terraform.io/docs)
 [![AWS](https://img.shields.io/badge/AWS-SSO-FF9900?style=flat&logo=amazon-aws&logoColor=white)](https://d-9d676db98b.awsapps.com/start/#/?tab=accounts)
+[![Terraform Check](https://github.com/ZSoftly/aws-infra/actions/workflows/simple-terraform-pipeline.yml/badge.svg)](https://github.com/ZSoftly/aws-infra/actions/workflows/simple-terraform-pipeline.yml)
 
 This repository contains Terraform code for provisioning and managing AWS infrastructure in a consistent and repeatable way.
 
@@ -32,7 +33,7 @@ aws/
 
 ### Prerequisites
 - AWS CLI configured with appropriate permissions
-- Terraform v1.6+ installed
+- Terraform v1.7+ installed
 - AWS SSO access configured
 
 ### Setting Up State Buckets
@@ -55,6 +56,15 @@ terraform apply
 - **App Subnet Sizing**: `/23` CIDR blocks (512 IPs) allocated for application subnets to accommodate EKS pod IP requirements
 - **Multi-AZ Design**: Resources spread across availability zones for high availability
 - **Security Layers**: Strict network segregation between application and database tiers
+
+## CI/CD Pipeline
+
+This repository uses GitHub Actions to automatically validate Terraform code:
+
+- **Terraform Format Check**: Ensures code follows standard formatting conventions
+- **Security Scanning**: Identifies potential security issues using tfsec
+
+The pipeline status badge at the top of this README indicates whether the latest checks have passed.
 
 ## Contributing
 
