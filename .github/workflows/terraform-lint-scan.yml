@@ -56,14 +56,16 @@ jobs:
         uses: actions/checkout@v3
 
       - name: Run tfsec
-        uses: aquasecurity/tfsec-action@v1.0.0
+        uses: aquasecurity/tfsec-action@master
         with:
           soft_fail: true  # Set to false to fail the workflow if issues are found
+          format: sarif
+          out: results.sarif
 
       - name: Upload SARIF file
-        uses: github/codeql-action/upload-sarif@v2
+        uses: github/codeql-action/upload-sarif@v3
         with:
-          sarif_file: tfsec.sarif
+          sarif_file: results.sarif
           
       - name: Comment PR with tfsec Results
         if: github.event_name == 'pull_request' && (success() || failure())
@@ -72,7 +74,7 @@ jobs:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
             const fs = require('fs');
-            const outputFile = 'tfsec.sarif';
+            const outputFile = 'results.sarif';
             
             if (fs.existsSync(outputFile)) {
               const sarif = JSON.parse(fs.readFileSync(outputFile, 'utf8'));
