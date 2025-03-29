@@ -1,0 +1,37 @@
+name: Terraform Simple Check
+
+on:
+  push:
+    branches: [ main, 'issue-*/**' ]
+    paths:
+      - 'aws/terraform/**'
+  pull_request:
+    branches: [ main ]
+    paths:
+      - 'aws/terraform/**'
+  workflow_dispatch:
+
+jobs:
+  terraform-check:
+    name: Terraform Check
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v2
+        with:
+          terraform_version: 1.7.5
+
+      - name: Terraform Format Check
+        run: |
+          echo "Checking terraform formatting..."
+          terraform fmt -check -recursive aws/terraform/
+        continue-on-error: true
+
+      - name: Run tfsec
+        uses: aquasecurity/tfsec-action@master
+        with:
+          soft_fail: true
+        continue-on-error: true
