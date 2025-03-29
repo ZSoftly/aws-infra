@@ -2,7 +2,7 @@
 
 [![Terraform](https://img.shields.io/badge/Terraform-1.7+-623CE4?style=flat&logo=terraform&logoColor=white)](https://www.terraform.io/docs)
 [![AWS](https://img.shields.io/badge/AWS-SSO-FF9900?style=flat&logo=amazon-aws&logoColor=white)](https://d-9d676db98b.awsapps.com/start/#/?tab=accounts)
-[![Terraform Check](https://github.com/ZSoftly/aws-infra/actions/workflows/simple-terraform-pipeline.yml/badge.svg)](https://github.com/ZSoftly/aws-infra/actions/workflows/simple-terraform-pipeline.yml)
+[![Terraform Check](https://github.com/ZSoftly/aws-infra/actions/workflows/simple-terraform-pipeline.yml/badge.svg?branch=main)](https://github.com/ZSoftly/aws-infra/actions/workflows/simple-terraform-pipeline.yml)
 
 This repository contains Terraform code for provisioning and managing AWS infrastructure in a consistent and repeatable way.
 
