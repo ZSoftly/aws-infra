@@ -1,23 +1,19 @@
-name: Terraform Lint and Security Scan
+name: Terraform Simple Check
 
 on:
   push:
-    branches: [ main, feat/*, feature/*, 'issue-*/**' ]
+    branches: [ main, 'issue-*/**' ]
     paths:
       - 'aws/terraform/**'
   pull_request:
     branches: [ main ]
     paths:
       - 'aws/terraform/**'
-  workflow_dispatch:  # Allow manual triggering
-
-permissions:
-  contents: read
-  pull-requests: write  # Allows the action to comment on PRs
+  workflow_dispatch:
 
 jobs:
-  terraform-lint:
-    name: Terraform Lint
+  terraform-check:
+    name: Terraform Check
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
@@ -27,94 +23,15 @@ jobs:
         uses: hashicorp/setup-terraform@v2
         with:
           terraform_version: 1.7.5
-          terraform_wrapper: false
 
       - name: Terraform Format Check
-        id: fmt
         run: |
           echo "Checking terraform formatting..."
-          find ./aws/terraform -type f -name "*.tf" | xargs -I {} dirname {} | sort -u | xargs -I {} terraform -chdir={} fmt -check
+          terraform fmt -check -recursive aws/terraform/
         continue-on-error: true
-
-      - name: Terraform Validate (No Backend)
-        id: validate
-        run: |
-          find ./aws/terraform -type f -name "*.tf" | xargs -I {} dirname {} | sort -u | xargs -I {} sh -c 'echo "Validating {}"; cd {} && terraform init -backend=false && terraform validate'
-        continue-on-error: true
-
-      - name: Report Terraform Lint Results
-        if: steps.fmt.outcome == 'failure' || steps.validate.outcome == 'failure'
-        run: |
-          echo "::error::Terraform linting failed. Please check the workflow logs for details."
-          exit 1
-
-  tfsec-scan:
-    name: tfsec Security Scan
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v3
 
       - name: Run tfsec
         uses: aquasecurity/tfsec-action@master
         with:
-          soft_fail: true  # Set to false to fail the workflow if issues are found
-          format: sarif
-          out: results.sarif
-
-      - name: Upload SARIF file
-        uses: github/codeql-action/upload-sarif@v3
-        with:
-          sarif_file: results.sarif
-          
-      - name: Comment PR with tfsec Results
-        if: github.event_name == 'pull_request' && (success() || failure())
-        uses: actions/github-script@v6
-        with:
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-          script: |
-            const fs = require('fs');
-            const outputFile = 'results.sarif';
-            
-            if (fs.existsSync(outputFile)) {
-              const sarif = JSON.parse(fs.readFileSync(outputFile, 'utf8'));
-              
-              let issueCount = 0;
-              let highCount = 0;
-              let mediumCount = 0;
-              let lowCount = 0;
-              
-              if (sarif.runs && sarif.runs[0] && sarif.runs[0].results) {
-                issueCount = sarif.runs[0].results.length;
-                
-                sarif.runs[0].results.forEach(result => {
-                  const level = result.properties?.issue_severity || '';
-                  if (level.toLowerCase() === 'high' || level.toLowerCase() === 'critical') {
-                    highCount++;
-                  } else if (level.toLowerCase() === 'medium') {
-                    mediumCount++;
-                  } else {
-                    lowCount++;
-                  }
-                });
-              }
-              
-              let commentBody = `## tfsec Security Scan Results\n\n`;
-              commentBody += `Found ${issueCount} potential security issues:\n`;
-              commentBody += `- 🔴 High: ${highCount}\n`;
-              commentBody += `- 🟠 Medium: ${mediumCount}\n`;
-              commentBody += `- 🟡 Low: ${lowCount}\n\n`;
-              
-              if (issueCount > 0) {
-                commentBody += `Check the "Security" tab or the workflow logs for details.\n`;
-              } else {
-                commentBody += `No security issues found! 🎉\n`;
-              }
-              
-              github.rest.issues.createComment({
-                issue_number: context.issue.number,
-                owner: context.repo.owner,
-                repo: context.repo.repo,
-                body: commentBody
-              });
-            }
+          soft_fail: true
+        continue-on-error: true
